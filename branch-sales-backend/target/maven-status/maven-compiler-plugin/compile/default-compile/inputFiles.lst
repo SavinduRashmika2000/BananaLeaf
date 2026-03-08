@@ -6,9 +6,11 @@ C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\
 C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\src\main\java\com\branchsales\BranchSalesApplication.java
 C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\src\main\java\com\branchsales\entity\SaleItem.java
 C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\src\main\java\com\branchsales\entity\Sale.java
+C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\src\main\java\com\branchsales\service\ReportService.java
 C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\src\main\java\com\branchsales\controller\ProductController.java
 C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\src\main\java\com\branchsales\controller\DashboardController.java
 C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\src\main\java\com\branchsales\TestApp.java
+C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\src\main\java\com\branchsales\controller\ReportController.java
 C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\src\main\java\com\branchsales\controller\SaleController.java
 C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\src\main\java\com\branchsales\controller\BranchController.java
 C:\Users\prart\OneDrive\Desktop\ITMInds Project\BananaLeaf\branch-sales-backend\src\main\java\com\branchsales\entity\Branch.java
