@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
@@ -36,8 +36,7 @@ public class Sale {
     @Column(name = "status", nullable = false)
     private String status;
 
-    @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "sale_id")
+    @JsonManagedReference
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<SaleItem> items;
 }

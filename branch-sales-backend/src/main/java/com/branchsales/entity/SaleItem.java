@@ -1,5 +1,6 @@
 package com.branchsales.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,6 +14,11 @@ public class SaleItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sale_id")
+    @JsonBackReference
+    private Sale sale;
 
     @Column(nullable = false)
     private String productName;

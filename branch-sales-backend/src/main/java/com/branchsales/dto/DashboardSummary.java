@@ -1,17 +1,21 @@
 package com.branchsales.dto;
 
+import java.util.List;
+
 public class DashboardSummary {
     private long offlineBranches;
     private long totalProducts;
     private double totalRevenue;
+    private List<BranchPerformanceDTO> branchSales;
 
     public DashboardSummary() {
     }
 
-    public DashboardSummary(long offlineBranches, long totalProducts, double totalRevenue) {
+    public DashboardSummary(long offlineBranches, long totalProducts, double totalRevenue, List<BranchPerformanceDTO> branchSales) {
         this.offlineBranches = offlineBranches;
         this.totalProducts = totalProducts;
         this.totalRevenue = totalRevenue;
+        this.branchSales = branchSales;
     }
 
     public long getOfflineBranches() {
@@ -38,6 +42,14 @@ public class DashboardSummary {
         this.totalRevenue = totalRevenue;
     }
 
+    public List<BranchPerformanceDTO> getBranchSales() {
+        return branchSales;
+    }
+
+    public void setBranchSales(List<BranchPerformanceDTO> branchSales) {
+        this.branchSales = branchSales;
+    }
+
     public static DashboardSummaryBuilder builder() {
         return new DashboardSummaryBuilder();
     }
@@ -46,6 +58,7 @@ public class DashboardSummary {
         private long offlineBranches;
         private long totalProducts;
         private double totalRevenue;
+        private List<BranchPerformanceDTO> branchSales;
 
         public DashboardSummaryBuilder offlineBranches(long offlineBranches) {
             this.offlineBranches = offlineBranches;
@@ -62,8 +75,13 @@ public class DashboardSummary {
             return this;
         }
 
+        public DashboardSummaryBuilder branchSales(List<BranchPerformanceDTO> branchSales) {
+            this.branchSales = branchSales;
+            return this;
+        }
+
         public DashboardSummary build() {
-            return new DashboardSummary(offlineBranches, totalProducts, totalRevenue);
+            return new DashboardSummary(offlineBranches, totalProducts, totalRevenue, branchSales);
         }
     }
 }

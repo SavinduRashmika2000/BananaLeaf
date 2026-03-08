@@ -26,6 +26,7 @@ public class DashboardService {
                 .offlineBranches(branchRepository.countByActiveFalse())
                 .totalProducts(productRepository.count())
                 .totalRevenue(totalRevenue != null ? totalRevenue : 0.0)
+                .branchSales(saleRepository.findBranchPerformance())
                 .build();
     }
 }
