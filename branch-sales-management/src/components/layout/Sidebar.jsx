@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import logo from '../../assets/logo.png';
 import {
     HomeIcon,
     MapPinIcon,
@@ -31,21 +32,28 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <aside className={`fixed top-0 left-0 h-full bg-white shadow-xl z-50 transition-all duration-300 transform ${isOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0 lg:w-20'} overflow-hidden`}>
                 <div className="flex flex-col h-full">
                     {/* Logo Section */}
-                    <div className="flex items-center justify-between px-6 py-6 border-b border-gray-100 h-24">
-                        <div className={`flex items-center space-x-3 overflow-hidden ${!isOpen && 'lg:justify-center lg:w-full lg:space-x-0'}`}>
-                            <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Squares2X2Icon className="w-6 h-6 text-white" />
+                    <div className={`flex flex-col px-6 py-8 border-b border-gray-100 transition-all duration-300 ${!isOpen && 'lg:items-center lg:px-2'}`}>
+                        <div className="flex items-start justify-between w-full">
+                            <div className={`flex flex-col items-center transition-all duration-300 ${isOpen ? 'w-full' : 'w-full mb-0'}`}>
+
+                                <div className={`flex items-center space-x-3 transition-all duration-300 ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0 h-0 overflow-hidden'}`}>
+                                    <img
+                                        src={logo}
+                                        alt="Company Logo"
+                                        className={`transition-all duration-300 object-contain ${isOpen ? 'w-20 h-20 mb-4' : 'w-12 h-12'}`}
+                                    />
+                                    <span className="text-xl font-bold text-gray-800 whitespace-nowrap">
+                                        BranchSales
+                                    </span>
+                                </div>
                             </div>
-                            <span className={`text-xl font-bold text-gray-800 whitespace-nowrap transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'lg:opacity-0 lg:w-0'}`}>
-                                BranchSales
-                            </span>
+                            <button
+                                onClick={toggleSidebar}
+                                className="lg:hidden text-gray-500 hover:text-green-600 transition-colors"
+                            >
+                                <XMarkIcon className="w-6 h-6" />
+                            </button>
                         </div>
-                        <button
-                            onClick={toggleSidebar}
-                            className="lg:hidden text-gray-500 hover:text-green-600 transition-colors"
-                        >
-                            <XMarkIcon className="w-6 h-6" />
-                        </button>
                     </div>
 
                     {/* Navigation Items */}
@@ -74,7 +82,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     </nav>
 
                     {/* User Section (Optional) */}
-                    <div className={`p-4 border-t border-gray-100 transition-all duration-200 ${!isOpen && 'lg:items-center'}`}>
+                    {/*<div className={`p-4 border-t border-gray-100 transition-all duration-200 ${!isOpen && 'lg:items-center'}`}>
                         <div className={`flex items-center ${!isOpen && 'lg:justify-center'}`}>
                             <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden border-2 border-green-600">
                                 <img src="https://ui-avatars.com/api/?name=Admin&background=16a34a&color=fff" alt="User" />
@@ -84,9 +92,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                 <p className="text-xs text-gray-500">Super Admin</p>
                             </div>
                         </div>
-                    </div>
+                    </div>*/}
                 </div>
-            </aside>
+            </aside >
         </>
     );
 };
