@@ -29,7 +29,7 @@ const MainLayout = () => {
 
                     <div className="ml-6">
                         <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
-                            Branch Sales Portal
+                            New Banana Leaf
                         </h1>
                     </div>
                 </header>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import api from '../services/api';
 import Modal from './Modal';
 import { 
@@ -10,19 +11,20 @@ import {
 const DownloadReportModal = ({ isOpen, onClose }) => {
     const [branches, setBranches] = useState([]);
     const [branchId, setBranchId] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [period, setPeriod] = useState('LAST_30_DAYS');
     const [loading, setLoading] = useState(false);
+
+    const periods = [
+        { id: 'TODAY', name: 'Today' },
+        { id: 'WEEK', name: 'This Week' },
+        { id: 'LAST_15_DAYS', name: 'Last 15 Days' },
+        { id: 'LAST_30_DAYS', name: 'Last 30 Days' },
+        { id: 'LAST_3_MONTHS', name: 'Last 3 Months' }
+    ];
 
     useEffect(() => {
         if (isOpen) {
             fetchBranches();
-            // Set default dates (current month)
-            const now = new Date();
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-            setStartDate(firstDay.toISOString().split('T')[0]);
-            setEndDate(lastDay.toISOString().split('T')[0]);
         }
     }, [isOpen]);
 
@@ -36,42 +38,51 @@ const DownloadReportModal = ({ isOpen, onClose }) => {
     };
 
     const handleDownload = async () => {
-        if (!startDate || !endDate) {
-            alert('Please select both start and end dates.');
-            return;
-        }
-
         setLoading(true);
         try {
-            const params = { startDate, endDate };
+            console.log('Initiating download for:', { branchId, period });
+            
+            // Construct URL dynamically to handle "All Branches" (empty branchId)
+            let url = `http://localhost:8080/api/reports/sales/download?period=${period}`;
             if (branchId) {
-                params.branchId = branchId;
+                url += `&branchId=${branchId}`;
             }
-
-            const response = await api.get('/reports/sales/download', {
-                params,
+            
+            const response = await axios.get(url, {
                 responseType: 'blob'
             });
 
-            // Create a blob from the response data
-            const file = new Blob([response.data], { type: 'application/pdf' });
-            
-            // Create a link element, hide it, direct it to the blob, and click it
-            const fileURL = URL.createObjectURL(file);
+            console.log('Download successful, response received.');
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const downloadUrl = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = fileURL;
-            link.setAttribute('download', `sales_report_${startDate}_to_${endDate}.pdf`);
+            link.href = downloadUrl;
+            link.setAttribute('download', 'sales-report.pdf');
+            
             document.body.appendChild(link);
             link.click();
             
-            // Clean up
-            document.body.removeChild(link);
-            URL.revokeObjectURL(fileURL);
+            // Clean up with delay
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(downloadUrl);
+            }, 500);
             
             onClose();
         } catch (err) {
-            console.error('Error downloading report:', err);
-            alert('Failed to download report. Please try again.');
+            console.error('Download Error:', err);
+            let errorMessage = 'Failed to download report.';
+            
+            if (err.code === 'ERR_NETWORK') {
+                errorMessage += '\n- Network Error: Is the backend running on port 8080?';
+            } else if (err.response) {
+                errorMessage += `\n- Server Error: ${err.response.status} ${err.response.statusText}`;
+            } else {
+                errorMessage += `\n- Detail: ${err.message}`;
+            }
+            
+            alert(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -85,7 +96,7 @@ const DownloadReportModal = ({ isOpen, onClose }) => {
         >
             <div className="space-y-6">
                 <p className="text-gray-500 text-sm">
-                    Select a branch and date range to filter the sales report. The report will be generated as a professional PDF.
+                    Select a branch and time period to filter the sales report. The report will be generated as a professional PDF.
                 </p>
 
                 <div className="space-y-4">
@@ -109,32 +120,23 @@ const DownloadReportModal = ({ isOpen, onClose }) => {
                         </select>
                     </div>
 
-                    {/* Date Range */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center">
-                                <CalendarIcon className="w-4 h-4 mr-2 text-green-600" />
-                                Start Date
-                            </label>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all bg-gray-50"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center">
-                                <CalendarIcon className="w-4 h-4 mr-2 text-green-600" />
-                                End Date
-                            </label>
-                            <input
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all bg-gray-50"
-                            />
-                        </div>
+                    {/* Time Period Selection */}
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center">
+                            <CalendarIcon className="w-4 h-4 mr-2 text-green-600" />
+                            Time Period
+                        </label>
+                        <select
+                            value={period}
+                            onChange={(e) => setPeriod(e.target.value)}
+                            className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all bg-gray-50"
+                        >
+                            {periods.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                    {p.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 

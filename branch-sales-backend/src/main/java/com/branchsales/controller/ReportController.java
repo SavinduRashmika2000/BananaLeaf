@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/reports")
+@org.springframework.web.bind.annotation.CrossOrigin(origins = "http://localhost:5173")
 public class ReportController {
 
     private final ReportService reportService;
@@ -21,20 +22,22 @@ public class ReportController {
     @GetMapping("/sales/download")
     public ResponseEntity<byte[]> downloadSalesReport(
             @org.springframework.web.bind.annotation.RequestParam(required = false) Long branchId,
-            @org.springframework.web.bind.annotation.RequestParam String startDate,
-            @org.springframework.web.bind.annotation.RequestParam String endDate) throws Exception {
+            @org.springframework.web.bind.annotation.RequestParam String period) throws Exception {
         
-        java.time.LocalDateTime start = java.time.LocalDate.parse(startDate).atStartOfDay();
-        java.time.LocalDateTime end = java.time.LocalDate.parse(endDate).atTime(23, 59, 59);
+        System.out.println("Processing PDF download request: branchId=" + branchId + ", period=" + period);
+        
+        try {
+            byte[] pdfContent = reportService.generateSalesReportPdfByPeriod(branchId, period);
+            System.out.println("PDF generated successfully, size: " + pdfContent.length);
 
-        byte[] pdfContent = reportService.generateSalesReportPdf(branchId, start, end);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("attachment", "sales_report_" + startDate + "_to_" + endDate + ".pdf");
-
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(pdfContent);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=sales-report.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfContent);
+        } catch (Exception e) {
+            System.err.println("Error generating PDF: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 }

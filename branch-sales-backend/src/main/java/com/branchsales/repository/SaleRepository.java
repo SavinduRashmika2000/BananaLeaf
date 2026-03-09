@@ -5,6 +5,7 @@ import com.branchsales.entity.Sale;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 @Repository
@@ -18,5 +19,8 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
 
     @Query("SELECT s FROM Sale s WHERE (:branchId IS NULL OR s.branch.id = :branchId) " +
             "AND s.saleDateTime BETWEEN :startDate AND :endDate")
-    List<Sale> findByFilters(Long branchId, java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
+    List<Sale> findByFilters(
+            @Param("branchId") Long branchId, 
+            @Param("startDate") java.time.LocalDateTime startDate, 
+            @Param("endDate") java.time.LocalDateTime endDate);
 }

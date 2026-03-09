@@ -43,8 +43,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         className={`transition-all duration-300 object-contain ${isOpen ? 'w-20 h-20 mb-4' : 'w-10 h-10'}`}
                                     />
                                     <span className="text-xl font-bold text-gray-800 whitespace-nowrap">
-                                        New Banana Leaf
+                                        Admin Portal
                                     </span>
+
                                 </div>
                             </div>
                             <button
