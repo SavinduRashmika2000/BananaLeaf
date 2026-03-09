@@ -38,10 +38,7 @@ const Sales = () => {
             header: 'Total Amount',
             render: (row) => `$${(row.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
         },
-        {
-            header: 'Payment Type',
-            accessor: 'paymentType'
-        },
+
         {
             header: 'Status',
             render: (row) => {
