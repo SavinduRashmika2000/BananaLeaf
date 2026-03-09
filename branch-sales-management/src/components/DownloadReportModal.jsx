@@ -19,7 +19,8 @@ const DownloadReportModal = ({ isOpen, onClose }) => {
         { id: 'WEEK', name: 'This Week' },
         { id: 'LAST_15_DAYS', name: 'Last 15 Days' },
         { id: 'LAST_30_DAYS', name: 'Last 30 Days' },
-        { id: 'LAST_3_MONTHS', name: 'Last 3 Months' }
+        { id: 'LAST_3_MONTHS', name: 'Last 3 Months' },
+        { id: 'ALL', name: 'All Time' }
     ];
 
     useEffect(() => {

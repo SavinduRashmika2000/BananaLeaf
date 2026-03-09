@@ -36,13 +36,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                         <div className="flex items-start justify-between w-full">
                             <div className={`flex flex-col items-center transition-all duration-300 ${isOpen ? 'w-full' : 'w-full mb-0'}`}>
 
-                                <div className={`flex items-center space-x-3 transition-all duration-300 ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0 h-0 overflow-hidden'}`}>
+                                <div className="flex items-center space-x-3 transition-all duration-300">
                                     <img
                                         src={logo}
                                         alt="Company Logo"
-                                        className={`transition-all duration-300 object-contain ${isOpen ? 'w-20 h-20 mb-4' : 'w-10 h-10'}`}
+                                        className={`transition-all duration-300 object-contain ${isOpen ? 'w-20 h-20 mb-4' : 'w-12 h-12'}`}
                                     />
-                                    <span className="text-xl font-bold text-gray-800 whitespace-nowrap">
+                                    <span className={`text-xl font-bold text-gray-800 whitespace-nowrap transition-all duration-300 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden'}`}>
                                         Central Admin
                                     </span>
 

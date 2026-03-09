@@ -22,25 +22,38 @@ const Sales = () => {
     const columns = [
         {
             header: 'Branch Name',
-            render: (row) => row.branch?.name || row.branchName || 'N/A'
+            render: (row) => {
+                if (row.branch?.name) return row.branch.name;
+                // If branch is null but id is 0 (or composite id ends in -0)
+                if (row.id?.endsWith('-0')) return 'Central Office';
+                return row.branchName || 'Unknown Branch';
+            }
         },
         { header: 'Invoice ID', accessor: 'invoiceLocal' },
         {
             header: 'Date / Time',
-            render: (row) => new Date(row.saleDateTime).toLocaleString()
+            render: (row) => row.saleDateTime ? new Date(row.saleDateTime).toLocaleString() : 'N/A'
         },
         {
             header: 'Total Amount',
-            render: (row) => `$${row.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+            render: (row) => `$${(row.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+        },
+        {
+            header: 'Payment Type',
+            accessor: 'paymentType'
         },
         {
             header: 'Status',
-            render: (row) => (
-                <span className={`px-2 py-1 rounded text-xs font-bold ${row.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                    {row.status}
-                </span>
-            )
+            render: (row) => {
+                const statusLabel = row.status === '1' ? 'Completed' : (row.status || 'Pending');
+                const isCompleted = statusLabel === 'Completed';
+                return (
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${isCompleted ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                        {statusLabel}
+                    </span>
+                );
+            }
         },
         {
             header: 'Action',
@@ -156,12 +169,18 @@ const Sales = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 text-sm">
-                                    {selectedSale.items.map((item, idx) => (
+                                    {!selectedSale.items || selectedSale.items.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="4" className="px-4 py-10 text-center text-gray-500 italic">
+                                                No items found for this invoice in the database.
+                                            </td>
+                                        </tr>
+                                    ) : selectedSale.items.map((item, idx) => (
                                         <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 font-medium text-gray-800">{item.productName}</td>
-                                            <td className="px-4 py-3 text-center text-gray-600">{item.quantity}</td>
-                                            <td className="px-4 py-3 text-right text-gray-600">${item.price.toFixed(2)}</td>
-                                            <td className="px-4 py-3 text-right font-bold text-gray-800">${(item.quantity * item.price).toFixed(2)}</td>
+                                            <td className="px-4 py-3 font-medium text-gray-800">{item.productName || 'Unknown Product'}</td>
+                                            <td className="px-4 py-3 text-center text-gray-600">{item.quantity || 0}</td>
+                                            <td className="px-4 py-3 text-right text-gray-600">${(item.price || 0).toFixed(2)}</td>
+                                            <td className="px-4 py-3 text-right font-bold text-gray-800">${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
