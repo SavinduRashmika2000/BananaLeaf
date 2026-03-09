@@ -26,7 +26,7 @@ const Products = () => {
         { header: 'ID', accessor: 'id' },
         { header: 'SKU / Code', accessor: 'sku' },
         { header: 'Product Name', accessor: 'name' },
-        { header: 'Category', accessor: 'category' },
+
         {
             header: 'Selling Price',
             render: (row) => `$${parseFloat(row.sellingPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
