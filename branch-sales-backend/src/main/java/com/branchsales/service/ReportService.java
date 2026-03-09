@@ -1,9 +1,9 @@
 package com.branchsales.service;
 
-import com.branchsales.entity.Branch;
-import com.branchsales.entity.Sale;
+import com.branchsales.dto.SalesDTO;
+import com.branchsales.entity.*;
 import com.branchsales.repository.BranchRepository;
-import com.branchsales.repository.SaleRepository;
+import com.branchsales.repository.InvoiceRepository;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
@@ -26,25 +26,41 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.sql.Timestamp;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ReportService {
 
-    private final SaleRepository saleRepository;
+    private final InvoiceRepository invoiceRepository;
     private final BranchRepository branchRepository;
 
-    public ReportService(SaleRepository saleRepository, BranchRepository branchRepository) {
-        this.saleRepository = saleRepository;
+    public ReportService(InvoiceRepository invoiceRepository, BranchRepository branchRepository) {
+        this.invoiceRepository = invoiceRepository;
         this.branchRepository = branchRepository;
     }
 
+    public List<SalesDTO> getSalesReportData(Long branchId, String period) {
+        LocalDateTime[] range = calculateRange(period);
+        Timestamp startTimestamp = Timestamp.valueOf(range[0]);
+        Timestamp endTimestamp = Timestamp.valueOf(range[1]);
+        
+        return invoiceRepository.findByFilters(branchId, startTimestamp, endTimestamp).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     public byte[] generateSalesReportPdfByPeriod(Long branchId, String period) throws Exception {
-        System.out.println("Generating report for period: " + period);
+        LocalDateTime[] range = calculateRange(period);
+        return generateSalesReportPdf(branchId, range[0], range[1]);
+    }
+
+    private LocalDateTime[] calculateRange(String period) {
         java.time.LocalDate today = java.time.LocalDate.now();
         LocalDateTime endDate = today.atTime(23, 59, 59);
         LocalDateTime startDate;
@@ -65,21 +81,23 @@ public class ReportService {
             case "LAST_3_MONTHS":
                 startDate = today.minusMonths(3).atStartOfDay();
                 break;
+            case "ALL":
+                startDate = LocalDateTime.of(2000, 1, 1, 0, 0);
+                break;
             default:
                 startDate = today.minusDays(30).atStartOfDay();
         }
-
-        System.out.println("Calculated range: " + startDate + " to " + endDate);
-        return generateSalesReportPdf(branchId, startDate, endDate);
+        return new LocalDateTime[] { startDate, endDate };
     }
 
-    public byte[] generateSalesReportPdf(Long branchId, LocalDateTime startDate, LocalDateTime endDate) throws Exception {
-        System.out.println("Fetching sales data from repository...");
-        List<Sale> sales = saleRepository.findByFilters(branchId, startDate, endDate);
-        System.out.println("Found " + sales.size() + " sales.");
+    public byte[] generateSalesReportPdf(Long branchId, LocalDateTime startDate, LocalDateTime endDate)
+            throws Exception {
+        Timestamp startTimestamp = Timestamp.valueOf(startDate);
+        Timestamp endTimestamp = Timestamp.valueOf(endDate);
         
+        List<Invoice> invoices = invoiceRepository.findByFilters(branchId, startTimestamp, endTimestamp);
         Branch selectedBranch = branchId != null ? branchRepository.findById(branchId).orElse(null) : null;
-        
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
         DateTimeFormatter dateOnlyFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
@@ -88,40 +106,34 @@ public class ReportService {
         PdfDocument pdf = new PdfDocument(writer);
         Document document = new Document(pdf);
 
-        System.out.println("Starting PDF document construction...");
-
         // Header Section with Logo and Title
-        Table headerTable = new Table(UnitValue.createPercentArray(new float[]{1, 4}));
+        Table headerTable = new Table(UnitValue.createPercentArray(new float[] { 1, 4 }));
         headerTable.setWidth(UnitValue.createPercentValue(100));
 
         try {
-            // First try loading from resources (works in JAR)
             ImageData imageData;
             try {
                 ClassPathResource res = new ClassPathResource("static/logo.png");
                 imageData = ImageDataFactory.create(res.getURL());
             } catch (Exception e1) {
-                // Fallback to project relative path (works in IDE)
                 imageData = ImageDataFactory.create("src/main/resources/static/logo.png");
             }
-            
+
             Image logo = new Image(imageData);
-            logo.setHeight(60); 
+            logo.setHeight(80); 
             headerTable.addCell(new Cell().add(logo).setBorder(Border.NO_BORDER));
-            System.out.println("Header logo added to PDF.");
         } catch (Exception e) {
-            System.err.println("Note: Could not load header logo: " + e.getMessage());
             headerTable.addCell(new Cell().setBorder(Border.NO_BORDER));
         }
 
         Cell titleCell = new Cell().add(new Paragraph("NEW BANANA LEAF")
-                .setFontSize(24)
+                .setFontSize(30)
                 .setBold()
                 .setTextAlignment(TextAlignment.LEFT))
                 .add(new Paragraph("Sales Report")
-                .setFontSize(18)
-                .setItalic()
-                .setTextAlignment(TextAlignment.LEFT))
+                        .setFontSize(18)
+                        .setItalic()
+                        .setTextAlignment(TextAlignment.LEFT))
                 .setBorder(Border.NO_BORDER);
         headerTable.addCell(titleCell);
         document.add(headerTable);
@@ -131,18 +143,19 @@ public class ReportService {
         // Report Info
         document.add(new Paragraph("Branch: " + (selectedBranch != null ? selectedBranch.getName() : "All Branches"))
                 .setFontSize(12).setBold());
-        document.add(new Paragraph("Period: " + startDate.format(dateOnlyFormatter) + " to " + endDate.format(dateOnlyFormatter))
+        document.add(new Paragraph(
+                "Period: " + startDate.format(dateOnlyFormatter) + " to " + endDate.format(dateOnlyFormatter))
                 .setFontSize(12).setBold());
         document.add(new Paragraph("Generated Date: " + LocalDateTime.now().format(formatter))
                 .setFontSize(10).setItalic().setMarginBottom(20));
 
         // Data Table
-        float[] columnWidths = { 2, 3, 3, 2, 2 };
+        float[] columnWidths = { 2, 3, 3, 2, 2, 2 };
         Table table = new Table(UnitValue.createPercentArray(columnWidths));
         table.setWidth(UnitValue.createPercentValue(100));
 
         // Table Headers
-        String[] headers = {"Invoice No", "Date", "Branch", "Total Amount", "Status"};
+        String[] headers = { "Invoice No", "Date", "Branch", "Payment", "Total Amount", "Status" };
         for (String header : headers) {
             table.addHeaderCell(new Cell().add(new Paragraph(header).setBold())
                     .setBackgroundColor(ColorConstants.LIGHT_GRAY)
@@ -150,54 +163,55 @@ public class ReportService {
         }
 
         double totalSales = 0;
-        int rowCount = 0;
-        for (Sale sale : sales) {
-            rowCount++;
-            System.out.println("Processing sale row " + rowCount + ": " + (sale.getInvoiceLocal() != null ? sale.getInvoiceLocal() : "Unknown"));
-            
-            // Null-safe Invoice No
-            String invoice = sale.getInvoiceLocal() != null ? sale.getInvoiceLocal() : "N/A";
-            table.addCell(new Cell().add(new Paragraph(invoice)).setTextAlignment(TextAlignment.CENTER));
-            
-            // Null-safe Date
+        for (Invoice invoice : invoices) {
+            String invoiceNo = invoice.getIdinvoice() != null ? invoice.getIdinvoice().toString() : "N/A";
+            table.addCell(new Cell().add(new Paragraph(invoiceNo)).setTextAlignment(TextAlignment.CENTER));
+
             String dateFormatted = "N/A";
-            if (sale.getSaleDateTime() != null) {
-                try {
-                    dateFormatted = sale.getSaleDateTime().format(formatter);
-                } catch (Exception e) {
-                    System.err.println("Error formatting date for sale " + sale.getId() + ": " + e.getMessage());
-                }
+            if (invoice.getCreatedAt() != null) {
+                dateFormatted = invoice.getCreatedAt().toLocalDateTime().format(dateOnlyFormatter);
             }
             table.addCell(new Cell().add(new Paragraph(dateFormatted)).setTextAlignment(TextAlignment.CENTER));
-            
-            // Null-safe Branch
-            String branchName = (sale.getBranch() != null && sale.getBranch().getName() != null) ? sale.getBranch().getName() : "N/A";
+
+            String branchName = "N/A";
+            if (invoice.getBranch() != null && invoice.getBranch().getName() != null) {
+                branchName = invoice.getBranch().getName();
+            } else if (invoice.getIdinvoice() != null) {
+                branchName = "Central Office";
+            }
             table.addCell(new Cell().add(new Paragraph(branchName)).setTextAlignment(TextAlignment.CENTER));
-            
-            // Total Amount
-            table.addCell(new Cell().add(new Paragraph(String.format("$%.2f", sale.getTotalAmount()))).setTextAlignment(TextAlignment.RIGHT));
-            
-            // Null-safe Status
-            String status = sale.getStatus() != null ? sale.getStatus() : "N/A";
+
+            String paymentType = invoice.getPaymentType() != null ? invoice.getPaymentType() : "N/A";
+            table.addCell(new Cell().add(new Paragraph(paymentType)).setTextAlignment(TextAlignment.CENTER));
+
+            double total = invoice.getTotal() != null ? invoice.getTotal() : 0.0;
+            table.addCell(new Cell().add(new Paragraph(String.format("$%.2f", total)))
+                    .setTextAlignment(TextAlignment.RIGHT));
+
+            String status = invoice.getStatus() != null ? invoice.getStatus() : "1";
+            if ("1".equals(status)) status = "Completed";
             table.addCell(new Cell().add(new Paragraph(status)).setTextAlignment(TextAlignment.CENTER));
-            
-            totalSales += sale.getTotalAmount();
+
+            totalSales += total;
         }
 
-        System.out.println("Finished adding " + rowCount + " rows to table.");
         document.add(table);
 
         // Summary Section
         document.add(new Paragraph("\n"));
-        Table summaryTable = new Table(UnitValue.createPercentArray(new float[]{3, 1}));
+        Table summaryTable = new Table(UnitValue.createPercentArray(new float[] { 3, 1 }));
         summaryTable.setWidth(UnitValue.createPercentValue(40));
         summaryTable.setHorizontalAlignment(HorizontalAlignment.RIGHT);
 
-        summaryTable.addCell(new Cell().add(new Paragraph("Number of Transactions:").setBold()).setBorder(Border.NO_BORDER));
-        summaryTable.addCell(new Cell().add(new Paragraph(String.valueOf(sales.size()))).setTextAlignment(TextAlignment.RIGHT).setBorder(Border.NO_BORDER));
-        
-        summaryTable.addCell(new Cell().add(new Paragraph("Total Sales Amount:").setBold().setFontSize(14)).setBorder(Border.NO_BORDER));
-        summaryTable.addCell(new Cell().add(new Paragraph(String.format("$%.2f", totalSales)).setBold().setFontSize(14)).setTextAlignment(TextAlignment.RIGHT).setBorder(Border.NO_BORDER));
+        summaryTable.addCell(
+                new Cell().add(new Paragraph("Number of Transactions:").setBold()).setBorder(Border.NO_BORDER));
+        summaryTable.addCell(new Cell().add(new Paragraph(String.valueOf(invoices.size())))
+                .setTextAlignment(TextAlignment.RIGHT).setBorder(Border.NO_BORDER));
+
+        summaryTable.addCell(new Cell().add(new Paragraph("Total Sales Amount:").setBold().setFontSize(14))
+                .setBorder(Border.NO_BORDER));
+        summaryTable.addCell(new Cell().add(new Paragraph(String.format("$%.2f", totalSales)).setBold().setFontSize(14))
+                .setTextAlignment(TextAlignment.RIGHT).setBorder(Border.NO_BORDER));
 
         document.add(summaryTable);
 
@@ -207,7 +221,7 @@ public class ReportService {
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFontColor(ColorConstants.GRAY));
 
-        // Adding Watermark to Every Page
+        // Watermark
         try {
             ImageData watermarkData;
             try {
@@ -218,8 +232,8 @@ public class ReportService {
             }
 
             Image watermark = new Image(watermarkData);
-            watermark.setWidth(300); // As requested
-            watermark.setOpacity(0.15f); // As requested
+            watermark.setWidth(300); 
+            watermark.setOpacity(0.15f); 
 
             int numberOfPages = pdf.getNumberOfPages();
             PdfExtGState gState = new PdfExtGState().setFillOpacity(0.15f);
@@ -227,26 +241,32 @@ public class ReportService {
             for (int i = 1; i <= numberOfPages; i++) {
                 PdfPage page = pdf.getPage(i);
                 PdfCanvas pdfCanvas = new PdfCanvas(page.newContentStreamAfter(), page.getResources(), pdf);
-                
                 float x = page.getPageSize().getWidth() / 2;
                 float y = page.getPageSize().getHeight() / 2;
-                
                 pdfCanvas.saveState();
                 pdfCanvas.setExtGState(gState);
-                
                 Canvas watermarkCanvas = new Canvas(pdfCanvas, page.getPageSize());
-                watermarkCanvas.showTextAligned(new Paragraph("").add(watermark), x, y, i, TextAlignment.CENTER, com.itextpdf.layout.properties.VerticalAlignment.MIDDLE, 0);
+                watermarkCanvas.showTextAligned(new Paragraph("").add(watermark), x, y, i, TextAlignment.CENTER,
+                        com.itextpdf.layout.properties.VerticalAlignment.MIDDLE, 0);
                 watermarkCanvas.close();
-                
                 pdfCanvas.restoreState();
             }
-            System.out.println("Watermark added to " + numberOfPages + " pages.");
-        } catch (Exception e) {
-            System.err.println("Note: Could not add watermark: " + e.getMessage());
-        }
+        } catch (Exception e) {}
 
         document.close();
-
         return baos.toByteArray();
+    }
+
+    private SalesDTO convertToDTO(Invoice invoice) {
+        return SalesDTO.builder()
+                .id(invoice.getId())
+                .invoiceLocal(invoice.getIdinvoice())
+                .branchName(invoice.getBranch() != null ? invoice.getBranch().getName() : "Central Office")
+                .branchId(invoice.getBranch() != null ? invoice.getBranch().getId() : 0L)
+                .saleDateTime(invoice.getCreatedAt())
+                .totalAmount(invoice.getTotal())
+                .paymentType(invoice.getPaymentType())
+                .status(invoice.getStatus())
+                .build();
     }
 }

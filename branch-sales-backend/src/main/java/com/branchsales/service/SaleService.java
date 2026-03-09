@@ -1,34 +1,76 @@
 package com.branchsales.service;
 
-import com.branchsales.entity.Sale;
-import com.branchsales.repository.SaleRepository;
+import com.branchsales.dto.SalesDTO;
+import com.branchsales.dto.SalesItemDTO;
+import com.branchsales.entity.Invoice;
+import com.branchsales.entity.InvoiceItem;
+import com.branchsales.repository.InvoiceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
 public class SaleService {
-    private final SaleRepository saleRepository;
+    private final InvoiceRepository invoiceRepository;
 
-    public SaleService(SaleRepository saleRepository) {
-        this.saleRepository = saleRepository;
+    public SaleService(InvoiceRepository invoiceRepository) {
+        this.invoiceRepository = invoiceRepository;
     }
 
-    public List<Sale> getAllSales() {
-        return saleRepository.findAll();
+    public List<SalesDTO> getAllSales() {
+        return invoiceRepository.findAllSorted().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    @Transactional
-    public Optional<Sale> getSaleById(Long id) {
-        Optional<Sale> sale = saleRepository.findById(id);
-        sale.ifPresent(s -> {
-            // Force initialization of lazy items
-            if (s.getItems() != null) {
-                s.getItems().size();
+    public SalesDTO getSaleById(String compositeId) {
+        Invoice invoice = findInvoiceByCompositeId(compositeId);
+        return invoice != null ? convertToDTO(invoice) : null;
+    }
+
+    public List<SalesItemDTO> getSaleItems(String compositeId) {
+        Invoice invoice = findInvoiceByCompositeId(compositeId);
+        if (invoice == null || invoice.getItems() == null) {
+            return java.util.Collections.emptyList();
+        }
+        return invoice.getItems().stream()
+                .map(this::convertToItemDTO)
+                .collect(Collectors.toList());
+    }
+
+    private Invoice findInvoiceByCompositeId(String compositeId) {
+        String[] parts = compositeId.split("-");
+        if (parts.length >= 1) {
+            try {
+                Integer id = Integer.parseInt(parts[0]);
+                return invoiceRepository.findById(id).orElse(null);
+            } catch (NumberFormatException e) {
+                return null;
             }
-        });
-        return sale;
+        }
+        return null;
+    }
+
+    private SalesDTO convertToDTO(Invoice invoice) {
+        return SalesDTO.builder()
+                .id(invoice.getId())
+                .invoiceLocal(invoice.getIdinvoice())
+                .branchName(invoice.getBranch() != null ? invoice.getBranch().getName() : "Central Office")
+                .branchId(invoice.getBranch() != null ? invoice.getBranch().getId() : 0L)
+                .saleDateTime(invoice.getCreatedAt())
+                .totalAmount(invoice.getTotal())
+                .paymentType(invoice.getPaymentType())
+                .status(invoice.getStatus())
+                .build();
+    }
+
+    private SalesItemDTO convertToItemDTO(InvoiceItem item) {
+        return SalesItemDTO.builder()
+                .productName(item.getProductName())
+                .quantity(item.getQty())
+                .price(item.getSp())
+                .build();
     }
 }

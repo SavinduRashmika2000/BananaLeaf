@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BranchRepository extends JpaRepository<Branch, Long> {
-    long countByActiveFalse();
+    long countByStatus(Integer status);
 }

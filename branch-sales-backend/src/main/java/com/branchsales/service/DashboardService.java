@@ -2,31 +2,31 @@ package com.branchsales.service;
 
 import com.branchsales.dto.DashboardSummary;
 import com.branchsales.repository.BranchRepository;
-import com.branchsales.repository.ProductRepository;
-import com.branchsales.repository.SaleRepository;
+import com.branchsales.repository.MainItemRepository;
+import com.branchsales.repository.InvoiceRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DashboardService {
     private final BranchRepository branchRepository;
-    private final ProductRepository productRepository;
-    private final SaleRepository saleRepository;
+    private final MainItemRepository mainItemRepository;
+    private final InvoiceRepository invoiceRepository;
 
     public DashboardService(BranchRepository branchRepository,
-            ProductRepository productRepository,
-            SaleRepository saleRepository) {
+            MainItemRepository mainItemRepository,
+            InvoiceRepository invoiceRepository) {
         this.branchRepository = branchRepository;
-        this.productRepository = productRepository;
-        this.saleRepository = saleRepository;
+        this.mainItemRepository = mainItemRepository;
+        this.invoiceRepository = invoiceRepository;
     }
 
     public DashboardSummary getSummary() {
-        Double totalRevenue = saleRepository.sumTotalAmount();
+        Double totalRevenue = invoiceRepository.sumTotalAmount();
         return DashboardSummary.builder()
-                .offlineBranches(branchRepository.countByActiveFalse())
-                .totalProducts(productRepository.count())
+                .offlineBranches(branchRepository.countByStatus(0))
+                .totalProducts(mainItemRepository.count())
                 .totalRevenue(totalRevenue != null ? totalRevenue : 0.0)
-                .branchSales(saleRepository.findBranchPerformance())
+                .branchSales(invoiceRepository.findBranchPerformance())
                 .build();
     }
 }

@@ -1,15 +1,15 @@
 package com.branchsales.controller;
 
-import com.branchsales.entity.Sale;
-import com.branchsales.entity.SaleItem;
+import com.branchsales.dto.SalesDTO;
+import com.branchsales.dto.SalesItemDTO;
 import com.branchsales.service.SaleService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Collections;
 
 @RestController
 @RequestMapping("/api/sales")
+@CrossOrigin(origins = "http://localhost:5173")
 public class SaleController {
     private final SaleService saleService;
 
@@ -18,21 +18,17 @@ public class SaleController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Sale>> getAllSales() {
+    public ResponseEntity<List<SalesDTO>> getAllSales() {
         return ResponseEntity.ok(saleService.getAllSales());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Sale> getSaleById(@PathVariable Long id) {
-        return saleService.getSaleById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<SalesDTO> getSaleById(@PathVariable String id) {
+        return ResponseEntity.ok(saleService.getSaleById(id));
     }
 
     @GetMapping("/{id}/items")
-    public ResponseEntity<List<SaleItem>> getSaleItems(@PathVariable Long id) {
-        return saleService.getSaleById(id)
-                .map(sale -> ResponseEntity.ok(sale.getItems()))
-                .orElse(ResponseEntity.ok(Collections.emptyList()));
+    public ResponseEntity<List<SalesItemDTO>> getSaleItems(@PathVariable String id) {
+        return ResponseEntity.ok(saleService.getSaleItems(id));
     }
 }

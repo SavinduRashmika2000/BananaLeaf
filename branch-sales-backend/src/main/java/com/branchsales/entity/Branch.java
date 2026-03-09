@@ -1,6 +1,7 @@
 package com.branchsales.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
@@ -16,16 +17,23 @@ public class Branch {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private String location;
+    
+    private Integer status;
 
-    @Column(nullable = false)
-    private boolean active;
+    @JsonProperty("active")
+    public boolean isActive() {
+        return status != null && status == 1;
+    }
+
+    @JsonProperty("active")
+    public void setActive(boolean active) {
+        this.status = active ? 1 : 0;
+    }
 
     @JsonIgnore
     @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
-    private List<Sale> sales;
+    private List<Invoice> invoices;
 }
