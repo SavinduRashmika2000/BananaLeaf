@@ -1,6 +1,7 @@
 package com.branchsales.repository;
 
 import com.branchsales.entity.Invoice;
+import com.branchsales.entity.InvoiceId;
 import com.branchsales.dto.BranchPerformanceDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +11,7 @@ import java.util.List;
 import java.sql.Timestamp;
 
 @Repository
-public interface InvoiceRepository extends JpaRepository<Invoice, Integer> {
+public interface InvoiceRepository extends JpaRepository<Invoice, InvoiceId> {
     @Query("SELECT i FROM Invoice i WHERE (:branchId IS NULL OR i.branchId = :branchId) " +
            "AND i.createdAt BETWEEN :startDate AND :endDate ORDER BY i.createdAt DESC")
     List<Invoice> findByFilters(@Param("branchId") Long branchId, 

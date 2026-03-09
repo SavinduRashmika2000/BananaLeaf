@@ -3,6 +3,7 @@ package com.branchsales.service;
 import com.branchsales.dto.SalesDTO;
 import com.branchsales.dto.SalesItemDTO;
 import com.branchsales.entity.Invoice;
+import com.branchsales.entity.InvoiceId;
 import com.branchsales.entity.InvoiceItem;
 import com.branchsales.repository.InvoiceRepository;
 import org.springframework.stereotype.Service;
@@ -41,11 +42,13 @@ public class SaleService {
     }
 
     private Invoice findInvoiceByCompositeId(String compositeId) {
+        if (compositeId == null) return null;
         String[] parts = compositeId.split("-");
         if (parts.length >= 1) {
             try {
                 Integer id = Integer.parseInt(parts[0]);
-                return invoiceRepository.findById(id).orElse(null);
+                Long branchId = parts.length > 1 ? Long.parseLong(parts[1]) : 0L;
+                return invoiceRepository.findById(new InvoiceId(id, branchId)).orElse(null);
             } catch (NumberFormatException e) {
                 return null;
             }
