@@ -32,7 +32,7 @@ public class ProductService {
 
     private ProductDTO convertToDTO(MainItem item) {
         String sku = item.getCode() != null ? item.getCode() : (item.getId() != null ? "PROD-" + item.getId() : "N/A");
-        
+
         return ProductDTO.builder()
                 .id(item.getId())
                 .sku(sku)
