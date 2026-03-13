@@ -12,13 +12,15 @@ import {
 
 const Products = () => {
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]); // New: categories
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         sku: '',
         sellingPrice: '',
-        active: true
+        active: true,
+        categoryId: '' // New: selected category
     });
     const [message, setMessage] = useState({ text: '', type: '' });
 
@@ -26,15 +28,19 @@ const Products = () => {
         { header: 'ID', accessor: 'id' },
         { header: 'SKU / Code', accessor: 'sku' },
         { header: 'Product Name', accessor: 'name' },
-
         {
             header: 'Selling Price',
-            render: (row) => `$${parseFloat(row.sellingPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+            render: (row) =>
+                `$${parseFloat(row.sellingPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
         },
         {
             header: 'Status',
             render: (row) => <StatusBadge active={row.active} />
         },
+        {
+            header: 'Category', // Show category in table
+            accessor: 'category'
+        }
     ];
 
     const fetchProducts = async () => {
@@ -49,8 +55,18 @@ const Products = () => {
         }
     };
 
+    const fetchCategories = async () => {
+        try {
+            const res = await api.get('/products/categories');
+            setCategories(res.data);
+        } catch (err) {
+            console.error('Error fetching categories:', err);
+        }
+    };
+
     useEffect(() => {
         fetchProducts();
+        fetchCategories();
     }, []);
 
     const handleSubmit = async (e) => {
@@ -66,7 +82,13 @@ const Products = () => {
 
             await api.post('/products', payload);
             setMessage({ text: 'Product added successfully!', type: 'success' });
-            setFormData({ name: '', sku: '', sellingPrice: '', active: true });
+            setFormData({
+                name: '',
+                sku: '',
+                sellingPrice: '',
+                active: true,
+                categoryId: ''
+            });
             fetchProducts();
         } catch (err) {
             console.error('Error adding product:', err);
@@ -146,6 +168,22 @@ const Products = () => {
                                     onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
                                 />
                             </div>
+                        </div>
+
+                        {/* Category Dropdown */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-600 block">Category</label>
+                            <select
+                                required
+                                className="w-full pl-3 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-600 outline-none transition-all"
+                                value={formData.categoryId}
+                                onChange={(e) => setFormData({ ...formData, categoryId: parseInt(e.target.value) })}
+                            >
+                                <option value="">Select Category</option>
+                                {categories.map((cat) => (
+                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                ))}
+                            </select>
                         </div>
 
                         {/* Active Switch & Button */}
