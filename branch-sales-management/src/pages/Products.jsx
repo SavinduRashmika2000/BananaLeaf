@@ -12,8 +12,8 @@ import {
 
 const Products = () => {
     const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]); // New: categories
     const [loading, setLoading] = useState(true);
+    const [categories, setCategories] = useState([{ id: 0, name: 'Unknown' }]); // default category
     const [submitting, setSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
@@ -177,12 +177,19 @@ const Products = () => {
                                 required
                                 className="w-full pl-3 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-600 outline-none transition-all"
                                 value={formData.categoryId}
-                                onChange={(e) => setFormData({ ...formData, categoryId: parseInt(e.target.value) })}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, categoryId: parseInt(e.target.value) })
+                                }
                             >
-                                <option value="">Select Category</option>
-                                {categories.map((cat) => (
-                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                ))}
+                                {/* Always show Unknown as the first/default option */}
+                                <option value={0}>Unknown</option>
+                                {categories
+                                    .filter((cat) => cat.id !== 0) // skip the "Unknown" duplicate if it exists in fetched categories
+                                    .map((cat) => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {cat.name}
+                                        </option>
+                                    ))}
                             </select>
                         </div>
 
