@@ -94,7 +94,7 @@ const Dashboard = () => {
                     />
                     <SummaryCard
                         label="Aggregate Revenue"
-                        value={`Rs. ${summary.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                        value={`Rs.${summary.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
                         icon={CurrencyDollarIcon}
                         colorClass="text-emerald-700"
                     />
@@ -123,7 +123,7 @@ const Dashboard = () => {
                                         <h2 className="text-lg font-semibold text-gray-700 mb-4">
                                             {branch.branchName}
                                         </h2>
-                                        
+
                                         <div className="space-y-4">
                                             <div>
                                                 <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Today's Sales</p>
