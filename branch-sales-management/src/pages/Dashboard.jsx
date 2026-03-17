@@ -16,6 +16,14 @@ const Dashboard = () => {
     const [branches, setBranches] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date().toLocaleTimeString());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -100,7 +108,7 @@ const Dashboard = () => {
                             <h3 className="text-2xl font-black text-gray-900 tracking-tight">Branch Performance <span className="text-green-600">Live</span></h3>
                         </div>
                         <div className="text-xs font-bold text-gray-400 uppercase tracking-widest hidden md:block">
-                            Updated {new Date().toLocaleTimeString()}
+                            Updated {currentTime}
                         </div>
                     </div>
 
