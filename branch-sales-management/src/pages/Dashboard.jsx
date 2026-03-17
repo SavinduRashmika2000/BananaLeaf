@@ -42,7 +42,7 @@ const Dashboard = () => {
     if (loading) {
         return (
             <div className="text-center py-10 text-gray-500">
-                Loading dashboard...
+                Fetching total sales data...
             </div>
         );
     }
@@ -109,18 +109,28 @@ const Dashboard = () => {
                             {branches.map((branch) => (
                                 <div
                                     key={branch.branchId}
-                                    className="bg-white rounded-2xl shadow-md p-6 flex flex-col justify-between min-h-[10rem] hover:shadow-lg transition border-l-4 border-green-500"
+                                    className="bg-white rounded-2xl shadow-md p-6 flex flex-col justify-between min-h-[12rem] hover:shadow-lg transition border-l-4 border-green-500"
                                 >
                                     <div className="flex-1">
-                                        <h2 className="text-lg font-semibold text-gray-700">
+                                        <h2 className="text-lg font-semibold text-gray-700 mb-4">
                                             {branch.branchName}
                                         </h2>
-                                    </div>
+                                        
+                                        <div className="space-y-4">
+                                            <div>
+                                                <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Today's Sales</p>
+                                                <p className="text-xl font-bold text-green-600">
+                                                    Rs. {branch.todaySales.toFixed(2)}
+                                                </p>
+                                            </div>
 
-                                    <div className="mt-4">
-                                        <p className="text-2xl font-bold text-green-600">
-                                            Rs. {branch.totalSales.toFixed(2)}
-                                        </p>
+                                            <div className="pt-2 border-t border-gray-50">
+                                                <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Total Revenue</p>
+                                                <p className="text-lg font-semibold text-gray-600">
+                                                    Rs. {branch.totalSales.toFixed(2)}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
