@@ -14,7 +14,8 @@ public interface SalesRepository extends JpaRepository<Invoice, InvoiceId> {
     SELECT new com.branchsales.dto.BranchSalesDTO(
     b.id,
     b.name,
-    COALESCE(SUM(i.total), 0.0)
+    COALESCE(SUM(i.total), 0.0),
+    COUNT(i.idinvoice)
     )
     FROM Branch b
     LEFT JOIN Invoice i
