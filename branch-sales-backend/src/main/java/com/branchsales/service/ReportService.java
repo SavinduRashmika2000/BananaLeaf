@@ -182,7 +182,7 @@ public class ReportService {
             table.addCell(new Cell().add(new Paragraph(branchName)).setTextAlignment(TextAlignment.CENTER));
 
             double total = invoice.getTotal() != null ? invoice.getTotal() : 0.0;
-            table.addCell(new Cell().add(new Paragraph(String.format("$%.2f", total)))
+            table.addCell(new Cell().add(new Paragraph(String.format("Rs.%.2f", total)))
                     .setTextAlignment(TextAlignment.RIGHT));
 
             String status = invoice.getStatus() != null ? invoice.getStatus() : "1";
@@ -208,7 +208,7 @@ public class ReportService {
 
         summaryTable.addCell(new Cell().add(new Paragraph("Total Sales Amount:").setBold().setFontSize(14))
                 .setBorder(Border.NO_BORDER));
-        summaryTable.addCell(new Cell().add(new Paragraph(String.format("$%.2f", totalSales)).setBold().setFontSize(14))
+        summaryTable.addCell(new Cell().add(new Paragraph(String.format("Rs.%.2f", totalSales)).setBold().setFontSize(14))
                 .setTextAlignment(TextAlignment.RIGHT).setBorder(Border.NO_BORDER));
 
         document.add(summaryTable);

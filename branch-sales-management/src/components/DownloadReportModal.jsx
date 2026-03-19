@@ -8,10 +8,10 @@ import {
     ArrowDownTrayIcon 
 } from '@heroicons/react/24/outline';
 
-const DownloadReportModal = ({ isOpen, onClose }) => {
+const DownloadReportModal = ({ isOpen, onClose, initialBranchId = '', initialPeriod = 'LAST_30_DAYS' }) => {
     const [branches, setBranches] = useState([]);
-    const [branchId, setBranchId] = useState('');
-    const [period, setPeriod] = useState('LAST_30_DAYS');
+    const [branchId, setBranchId] = useState(initialBranchId);
+    const [period, setPeriod] = useState(initialPeriod);
     const [loading, setLoading] = useState(false);
 
     const periods = [
@@ -26,8 +26,10 @@ const DownloadReportModal = ({ isOpen, onClose }) => {
     useEffect(() => {
         if (isOpen) {
             fetchBranches();
+            setBranchId(initialBranchId);
+            setPeriod(initialPeriod);
         }
-    }, [isOpen]);
+    }, [isOpen, initialBranchId, initialPeriod]);
 
     const fetchBranches = async () => {
         try {
@@ -43,13 +45,11 @@ const DownloadReportModal = ({ isOpen, onClose }) => {
         try {
             console.log('Initiating download for:', { branchId, period });
             
-            // Construct URL dynamically to handle "All Branches" (empty branchId)
-            let url = `http://localhost:8080/api/reports/sales/download?period=${period}`;
-            if (branchId) {
-                url += `&branchId=${branchId}`;
-            }
-            
-            const response = await axios.get(url, {
+            const response = await api.get('/reports/sales/download', {
+                params: {
+                    period,
+                    branchId: branchId || undefined
+                },
                 responseType: 'blob'
             });
 
@@ -59,12 +59,16 @@ const DownloadReportModal = ({ isOpen, onClose }) => {
             const downloadUrl = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = downloadUrl;
-            link.setAttribute('download', 'sales-report.pdf');
+            
+            // Generate a descriptive filename
+            const dateStr = new Date().toISOString().split('T')[0];
+            const filename = `sales-report-${period.toLowerCase()}-${dateStr}.pdf`;
+            link.setAttribute('download', filename);
             
             document.body.appendChild(link);
             link.click();
             
-            // Clean up with delay
+            // Clean up
             setTimeout(() => {
                 link.remove();
                 window.URL.revokeObjectURL(downloadUrl);
@@ -75,9 +79,7 @@ const DownloadReportModal = ({ isOpen, onClose }) => {
             console.error('Download Error:', err);
             let errorMessage = 'Failed to download report.';
             
-            if (err.code === 'ERR_NETWORK') {
-                errorMessage += '\n- Network Error: Is the backend running on port 8080?';
-            } else if (err.response) {
+            if (err.response) {
                 errorMessage += `\n- Server Error: ${err.response.status} ${err.response.statusText}`;
             } else {
                 errorMessage += `\n- Detail: ${err.message}`;

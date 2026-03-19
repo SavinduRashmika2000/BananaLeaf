@@ -13,11 +13,16 @@ import {
 
 const Sales = () => {
     const [sales, setSales] = useState([]);
+    const [branches, setBranches] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [downloadModalOpen, setDownloadModalOpen] = useState(false);
     const [selectedSale, setSelectedSale] = useState(null);
     const [loadingItems, setLoadingItems] = useState(false);
+    
+    // Filter states
+    const [branchId, setBranchId] = useState('');
+    const [period, setPeriod] = useState('LAST_30_DAYS');
 
     const columns = [
         {
@@ -36,7 +41,7 @@ const Sales = () => {
         },
         {
             header: 'Total Amount',
-            render: (row) => `$${(row.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+            render: (row) => `Rs.${(row.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
         },
 
         {
@@ -66,10 +71,24 @@ const Sales = () => {
         },
     ];
 
+    const fetchBranches = async () => {
+        try {
+            const response = await api.get('/branches');
+            setBranches(response.data);
+        } catch (err) {
+            console.error('Error fetching branches:', err);
+        }
+    };
+
     const fetchSales = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/sales');
+            const response = await api.get('/reports/sales', {
+                params: {
+                    branchId: branchId || undefined,
+                    period
+                }
+            });
             if (response.data && Array.isArray(response.data)) {
                 setSales(response.data);
             } else {
@@ -78,7 +97,6 @@ const Sales = () => {
             }
         } catch (err) {
             console.error('Error fetching sales:', err);
-            // Optionally set an error state to show a message in the UI
         } finally {
             setLoading(false);
         }
@@ -99,25 +117,70 @@ const Sales = () => {
     };
 
     useEffect(() => {
-        fetchSales();
+        fetchBranches();
     }, []);
 
+    useEffect(() => {
+        fetchSales();
+    }, [branchId, period]);
+
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between">
+        <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h2 className="text-2xl font-bold text-gray-800">Sales Report</h2>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-3">
                     <button
                         onClick={() => setDownloadModalOpen(true)}
-                        className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-sm"
+                        className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md shadow-green-200 active:scale-95"
                     >
                         <DocumentTextIcon className="w-5 h-5" />
                         <span>Download PDF</span>
                     </button>
-                    {/*<div className="flex items-center space-x-2 text-sm text-gray-500">
-                        <CalendarIcon className="w-5 h-5" />
-                        <span>Last 30 Days</span>
-                    </div>*/}
+                </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-end">
+                <div className="space-y-1.5 min-w-[200px]">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Filter by Branch</label>
+                    <div className="relative">
+                        <BuildingStorefrontIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <select
+                            value={branchId}
+                            onChange={(e) => setBranchId(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-green-500/20 transition-all cursor-pointer"
+                        >
+                            <option value="">All Branches</option>
+                            {branches.map(branch => (
+                                <option key={branch.id} value={branch.id}>{branch.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="space-y-1.5 min-w-[200px]">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Time Period</label>
+                    <div className="relative">
+                        <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <select
+                            value={period}
+                            onChange={(e) => setPeriod(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-green-500/20 transition-all cursor-pointer"
+                        >
+                            <option value="TODAY">Today</option>
+                            <option value="WEEK">This Week</option>
+                            <option value="LAST_15_DAYS">Last 15 Days</option>
+                            <option value="LAST_30_DAYS">Last 30 Days</option>
+                            <option value="LAST_3_MONTHS">Last 3 Months</option>
+                            <option value="ALL">All Time</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="flex-grow"></div>
+                
+                <div className="text-right pb-1">
+                    <p className="text-xs text-gray-400 font-medium">Showing {sales.length} transactions</p>
                 </div>
             </div>
 
@@ -176,8 +239,8 @@ const Sales = () => {
                                         <tr key={idx} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-4 py-3 font-medium text-gray-800">{item.productName || 'Unknown Product'}</td>
                                             <td className="px-4 py-3 text-center text-gray-600">{item.quantity || 0}</td>
-                                            <td className="px-4 py-3 text-right text-gray-600">${(item.price || 0).toFixed(2)}</td>
-                                            <td className="px-4 py-3 text-right font-bold text-gray-800">${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</td>
+                                            <td className="px-4 py-3 text-right text-gray-600">Rs.{(item.price || 0).toFixed(2)}</td>
+                                            <td className="px-4 py-3 text-right font-bold text-gray-800">Rs.{((item.quantity || 0) * (item.price || 0)).toFixed(2)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -189,7 +252,7 @@ const Sales = () => {
                             <div className="bg-green-50 p-4 rounded-xl border border-green-100 text-right min-w-[200px]">
                                 <p className="text-xs text-green-600 font-bold uppercase tracking-widest">Grand Total</p>
                                 <p className="text-3xl font-black text-green-700">
-                                    ${selectedSale.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    Rs.{selectedSale.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                 </p>
                             </div>
                         </div>
@@ -201,6 +264,8 @@ const Sales = () => {
             <DownloadReportModal
                 isOpen={downloadModalOpen}
                 onClose={() => setDownloadModalOpen(false)}
+                initialBranchId={branchId}
+                initialPeriod={period}
             />
         </div>
     );

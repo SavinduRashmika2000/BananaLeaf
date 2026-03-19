@@ -20,4 +20,6 @@ public interface BranchStockBatchRepository extends JpaRepository<BranchStockBat
     List<BranchStockBatch> findByProductId(Long productId);
 
     List<BranchStockBatch> findByBranchIdAndProductIdOrderByReceivedAtDesc(Long branchId, Long productId);
+
+    List<BranchStockBatch> findAllByOrderByReceivedAtDesc();
 }

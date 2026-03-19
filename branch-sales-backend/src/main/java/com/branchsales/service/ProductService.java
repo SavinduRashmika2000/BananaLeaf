@@ -319,10 +319,12 @@ public class ProductService {
                 .findByProductIdAndRemainingQuantityGreaterThanOrderByCreatedAtAsc(item.getId(), 0.0)
                 .stream()
                 .map(batch -> CentralStockDTO.builder()
+                        .id(batch.getId())
                         .quantity(batch.getQuantity())
                         .remainingQuantity(batch.getRemainingQuantity())
                         .costPrice(batch.getCostPrice())
                         .dealerName(batch.getDealer() != null ? batch.getDealer().getName() : "Direct")
+                        .createdAt(batch.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
 

@@ -10,22 +10,8 @@ const ProductTable = ({ products, loading, onEdit }) => {
             render: (row) => `Rs.${(row.sellingPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
         },
         {
-            header: 'Central Stock Breakdown',
-            render: (row) => (
-                <div className="space-y-1">
-                    {row.centralStock?.map((batch, idx) => (
-                        <div key={idx} className="flex items-center space-x-2 text-xs">
-                            <span className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-700 font-bold">{batch.remainingQuantity.toLocaleString()}</span>
-                            <span className="text-gray-500">at</span>
-                            <span className="font-medium text-emerald-600">Rs.{(batch.costPrice || 0).toLocaleString()}</span>
-                            <span className="text-[10px] text-gray-400 italic">({batch.dealerName})</span>
-                        </div>
-                    ))}
-                    {(!row.centralStock || row.centralStock.length === 0) && (
-                        <span className="text-xs text-red-500 italic">Out of Stock (Central)</span>
-                    )}
-                </div>
-            )
+            header: 'SKU / Code',
+            accessor: 'sku'
         },
         {
             header: 'Actions',

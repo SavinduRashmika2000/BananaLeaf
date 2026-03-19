@@ -150,19 +150,6 @@ const Dashboard = () => {
                     )}
                 </div>
 
-                {/* Footer Insight */}
-                <div className="mt-8 bg-gray-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-green-500 blur-[120px] opacity-20 group-hover:opacity-40 transition-opacity duration-700"></div>
-                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div className="text-center md:text-left">
-                            <h3 className="text-2xl font-black mb-2 tracking-tight">Ready for Deeper Insights?</h3>
-                            <p className="text-gray-400 max-w-md font-medium">Your branch sales are synced in real-time. Review the detailed analytics to optimize your inventory and staffing levels across all locations.</p>
-                        </div>
-                        <button className="whitespace-nowrap px-10 py-4 bg-white text-gray-900 rounded-full font-black hover:scale-105 active:scale-95 transition-all shadow-xl shadow-green-900/20 uppercase tracking-widest text-xs">
-                            Launch Sales Analytics
-                        </button>
-                    </div>
-                </div>
             </div>
 
             {/* Dashboard Specific Footer */}

@@ -266,7 +266,7 @@ const Products = () => {
                                             )}
                                         </div>
                                         <div className="relative">
-                                            <span className="absolute inset-y-0 left-0 pl-2 flex items-center text-gray-400 text-xs">$</span>
+                                            <span className="absolute inset-y-0 left-0 pl-2 flex items-center text-gray-400 text-xs font-bold">Rs.</span>
                                             <input
                                                 type="number"
                                                 step="0.01"
