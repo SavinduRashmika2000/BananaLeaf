@@ -1,6 +1,7 @@
 package com.branchsales.controller;
 
 import com.branchsales.dto.StockInwardDTO;
+import com.branchsales.dto.BulkStockInwardDTO;
 import com.branchsales.dto.BulkStockDistributionDTO;
 import com.branchsales.entity.CentralStock;
 import com.branchsales.entity.BranchStockBatch;
@@ -22,6 +23,12 @@ public class StockController {
     @PostMapping("/inward")
     public ResponseEntity<Void> receiveStock(@RequestBody StockInwardDTO dto) {
         stockService.receiveStock(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/inward/bulk")
+    public ResponseEntity<Void> receiveBulkStock(@RequestBody BulkStockInwardDTO dto) {
+        stockService.receiveBulkStock(dto);
         return ResponseEntity.ok().build();
     }
 
@@ -57,9 +64,22 @@ public class StockController {
         return ResponseEntity.ok(stockService.getBranchProductStock(branchId, productId));
     }
 
+    @GetMapping("/log/inward")
+    public ResponseEntity<List<CentralStock>> getInwardLog(
+            @RequestParam(required = false) Long dealerId,
+            @RequestParam(required = false) String date) {
+        return ResponseEntity.ok(stockService.getInwardLog(dealerId, date));
+    }
+
+    @GetMapping("/log/distribute")
+    public ResponseEntity<List<BranchStockBatch>> getDistributeLog() {
+        return ResponseEntity.ok(stockService.getDistributeLog());
+    }
+
     @Data
     @AllArgsConstructor
     public static class ErrorResponse {
         private String message;
     }
 }
+
